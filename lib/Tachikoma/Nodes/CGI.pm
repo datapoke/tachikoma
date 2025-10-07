@@ -22,7 +22,6 @@ my $MAX_REQUESTS = 500;
 
 my $home = ( getpwuid $< )[7];
 $Tachikoma::Nodes::CGI::Config = {
-    protocol      => 'http',
     document_root => "$home/.tachikoma/http",
     script_paths  => { '/cgi-bin' => "$home/.tachikoma/http/cgi-bin/" },
     broker_ids    => ['localhost:5501'],
@@ -88,7 +87,6 @@ sub fill {    ## no critic (ProhibitExcessComplexity)
     my $found           = undef;
     my $script_name     = undef;
     my $script_path     = undef;
-    my $proto           = $server_config->{protocol} || 'http';
     my $document_root   = $server_config->{document_root};
     my $server_paths    = $server_config->{script_paths};
     my $test_path       = $script_url;
@@ -143,29 +141,31 @@ FIND_SCRIPT: while ($test_path) {
     my $query_string = $request->{query_string};
     $request_uri .= join q(), q(?), $query_string if ($query_string);
     my $is_post = $request->{method} eq 'POST';
-    $ENV{PATH}              = '/bin:/usr/bin';
+    $ENV{AUTH_TYPE}         = $request->{auth_type} || q();
+    $ENV{CONTENT_LENGTH}    = $headers->{'content-length'} if ($is_post);
+    $ENV{CONTENT_TYPE}      = $headers->{'content-type'}   if ($is_post);
     $ENV{DOCUMENT_ROOT}     = $document_root;
-    $ENV{SERVER_SOFTWARE}   = 'Tachikoma';
-    $ENV{SERVER_NAME}       = $server_name;
     $ENV{GATEWAY_INTERFACE} = 'CGI/1.1';
-    $ENV{SERVER_PROTOCOL}   = 'HTTP/1.1';
-    $ENV{SERVER_PORT}       = $request->{server_port};
-    $ENV{REQUEST_URI}       = $request_uri;
-    $ENV{REQUEST_METHOD}    = $request->{method};
     $ENV{PATH_INFO}         = $path_info;
     $ENV{PATH_TRANSLATED}   = q();
+    $ENV{PATH}              = '/bin:/usr/bin';
+    $ENV{QUERY_STRING}      = $query_string;
+    $ENV{REMOTE_ADDR}       = $request->{remote_addr};
+    $ENV{REMOTE_PORT}       = $request->{remote_port};
+    $ENV{REMOTE_USER}       = $request->{remote_user} || q();
+    $ENV{REQUEST_SCHEME}    = $request->{scheme};
+    $ENV{REQUEST_METHOD}    = $request->{method};
+    $ENV{REQUEST_URI}       = $request_uri;
     $ENV{SCRIPT_FILENAME}   = $script_path;
     $ENV{SCRIPT_NAME}       = $script_name;
-    $ENV{SCRIPT_URI}     = join q(), $proto, '://', $server_name, $script_url;
-    $ENV{SCRIPT_URL}     = $script_url;
-    $ENV{QUERY_STRING}   = $query_string;
-    $ENV{REMOTE_ADDR}    = $request->{remote_addr};
-    $ENV{REMOTE_PORT}    = $request->{remote_port};
-    $ENV{AUTH_TYPE}      = $request->{auth_type}   || q();
-    $ENV{REMOTE_USER}    = $request->{remote_user} || q();
-    $ENV{CONTENT_TYPE}   = $headers->{'content-type'}   if ($is_post);
-    $ENV{CONTENT_LENGTH} = $headers->{'content-length'} if ($is_post);
-    $ENV{TKSSL}          = $tkssl                       if ( defined $tkssl );
+    $ENV{SCRIPT_URI}        = join q(),
+        $request->{scheme}, '://', $server_name, $script_url;
+    $ENV{SCRIPT_URL}        = $script_url;
+    $ENV{SERVER_NAME}       = $server_name;
+    $ENV{SERVER_PORT}       = $request->{server_port};
+    $ENV{SERVER_PROTOCOL}   = 'HTTP/1.1';
+    $ENV{SERVER_SOFTWARE}   = 'Tachikoma';
+    $ENV{TKSSL}             = $tkssl if ( defined $tkssl );
     $ENV{NO_HOSTNAME_CHECK} = $no_hostname_check
         if ( defined $no_hostname_check );
     $ENV{UNIQUE_ID} = md5_hex(rand);

@@ -32,6 +32,7 @@ sub new {
     $self->{payloads} = {};
     $self->{requests} = {};
     $self->{port}     = undef;
+    $self->{scheme}   = undef;
     bless $self, $class;
     return $self;
 }
@@ -40,9 +41,10 @@ sub arguments {
     my $self = shift;
     if (@_) {
         $self->{arguments} = shift;
-        my ( $tmp_path, $port ) = split q( ), $self->{arguments}, 2;
+        my ( $tmp_path, $port, $scheme ) = split q( ), $self->{arguments}, 3;
         $self->{tmp_path} = $tmp_path;
         $self->{port}     = $port;
+        $self->{scheme}   = $scheme;
         $self->set_timer;
     }
     return $self->{arguments};
@@ -103,6 +105,7 @@ sub fill {    ## no critic (ProhibitExcessComplexity)
         $request->{remote_port}  = $remote_port;
         $request->{line}         = $line;
         $request->{method}       = $method;
+        $request->{scheme}       = $self->{scheme} || 'http';
         $request->{uri}          = $uri;
         $request->{version}      = $version;
         $request->{path}         = $script_url;
@@ -307,6 +310,14 @@ sub port {
         $self->{port} = shift;
     }
     return $self->{port};
+}
+
+sub scheme {
+    my $self = shift;
+    if (@_) {
+        $self->{scheme} = shift;
+    }
+    return $self->{scheme};
 }
 
 1;

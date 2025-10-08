@@ -610,7 +610,7 @@ sub parse_local_assignment {
     my $name_token = undef;
     my $op         = undef;
     my $expr       = undef;
-    if ( $self->current_token->{type} =~ /^(ident|string\d|variable)$/ ) {
+    if ( $self->current_token->{type} =~ /^(ident|string\d|number|variable)$/ ) {
         $name_token = $self->consume;
         $self->consume('whitespace')
             while ( $self->current_token->{type} eq 'whitespace' );

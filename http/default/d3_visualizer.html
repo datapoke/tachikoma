@@ -154,27 +154,15 @@
                         owner: 0
                     });
                 }
-                if (!Array.isArray(d.owner)) {
-                    if (d.owner !== -1 && !nodes[d.owner].ignore) {
+                for (let i = 0; i < d.owner.length; i++) {
+                    if (!nodes[d.owner[i]].ignore) {
                         links.push({
                             source: nodes[did],
-                            target: nodes[d.owner],
+                            target: nodes[d.owner[i]],
                             sink: 0,
                             edge: 0,
                             owner: 1
                         });
-                    }
-                } else {
-                    for (let i = 0; i < d.owner.length; i++) {
-                        if (!nodes[d.owner[i]].ignore) {
-                            links.push({
-                                source: nodes[did],
-                                target: nodes[d.owner[i]],
-                                sink: 0,
-                                edge: 0,
-                                owner: 1
-                            });
-                        }
                     }
                 }
             });
@@ -257,8 +245,8 @@
             let ownerLinkData = transformedData.links.filter(d => d.owner);
             let edgeLinkData = transformedData.links.filter(d => d.edge);
 
-            let sinkNodeData = transformedData.nodes.filter(d => !d.ignore && d.owner === -1 && d.edge === -1);
-            let ownerNodeData = transformedData.nodes.filter(d => !d.ignore && d.owner !== -1 && d.edge === -1);
+            let sinkNodeData = transformedData.nodes.filter(d => !d.ignore && !d.owner.length && d.edge === -1);
+            let ownerNodeData = transformedData.nodes.filter(d => !d.ignore && d.owner.length && d.edge === -1);
             let edgeNodeData = transformedData.nodes.filter(d => !d.ignore && d.edge !== -1);
 
             sinkLinks = sinkLinks.data(sinkLinkData, d => d.source.id + "-" + d.target.id);

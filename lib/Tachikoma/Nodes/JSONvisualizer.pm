@@ -106,6 +106,7 @@ sub _gather_node_information {
             and length( $node->{parent} )
             and $node->{parent} =~ m{$ignore} );
         my $full_row = $by_name{$name};
+        $full_row->{name} = $name;
         $full_row->{sink} = $ids{ $node->{sink}->{name} }
             if ( $node->{sink} );
         $full_row->{edge} = $ids{ $node->{edge}->{name} }

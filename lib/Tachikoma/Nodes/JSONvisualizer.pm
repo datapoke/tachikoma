@@ -77,8 +77,9 @@ sub gather_node_information {
 sub _gather_node_information {
     my $self        = shift;
     my $mode        = shift;
-    my $brief_table = [];
+    my %by_name     = {};
     my $full_table  = [];
+    my $brief_table = [];
     my $content     = undef;
     my $ignore      = $self->{arguments};
     my %ids         = ();
@@ -88,41 +89,45 @@ sub _gather_node_information {
         my $node = $Tachikoma::Nodes{$name};
         next
             if ($ignore
-            and $node->{parent}
+            and length($node->{parent})
             and $node->{parent} =~ m{$ignore} );
         $ids{$name} = $id++;
+        $by_name{$name} = {
+            sink    => -1,
+            edge    => -1,
+            owner   => {},
+            counter => $node->{counter} ? $node->{counter} : 0,
+        };
     }
     for my $name ( sort keys %Tachikoma::Nodes ) {
         my $node = $Tachikoma::Nodes{$name};
         next
             if ($ignore
-            and $node->{parent}
+            and length($node->{parent})
             and $node->{parent} =~ m{$ignore} );
+        my $full_row = $by_name{$name};
+        $full_row->{sink} = $ids{ $node->{sink}->{name} }
+            if ( $node->{sink} );
+        $full_row->{edge} = $ids{ $node->{edge}->{name} }
+            if ( $node->{edge} );
         my $node_owner = $node->owner;
-        my $owner      = undef;
-        if ( ref $node_owner ) {
-            $owner = [];
-            for my $path ( @{$node_owner} ) {
-                my $name = ( split m{/}, $path, 2 )[0];
-                push @{$owner}, $ids{$name} if ( exists $ids{$name} );
+        $node_owner    = length($node_owner) ? [ $node_owner ] : []
+            if ( not ref $node_owner );
+        for my $path ( @{$node_owner} ) {
+            next if ( not length $path );
+            my @next = split m{/}, $path;
+            while (my $child = shift @next) {
+                $by_name{$name}->{owner}->{ $ids{$child} } = 1;
+                $name = $child;
             }
         }
-        elsif ( length $node_owner ) {
-            my $name = ( split m{/}, $node_owner, 2 )[0];
-            $owner = $ids{$name} if ( exists $ids{$name} );
-        }
-        my $brief_row = {
-            sink    => $node->{sink} ? $ids{ $node->{sink}->{name} } : -1,
-            edge    => $node->{edge} ? $ids{ $node->{edge}->{name} } : -1,
-            owner   => $owner // -1,
-            counter => $node->{counter} ? $node->{counter} : 0,
-        };
-        push @{$brief_table}, $brief_row;
-        my $full_row = {
-            name => $name,
-            %{$brief_row},
-        };
         push @{$full_table}, $full_row;
+    }
+    for my $full_row (@{$full_table}) {
+        $full_row->{owner} = [ keys %{ $full_row->{owner} } ];
+        my $brief_row = {%{$full_row}};
+        delete $brief_row->{name};
+        push @{$brief_table}, $brief_row;
     }
     my $full_json  = encode_json($full_table);
     my $brief_json = encode_json($brief_table);

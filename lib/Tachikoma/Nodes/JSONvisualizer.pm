@@ -116,17 +116,18 @@ sub _gather_node_information {
             if ( not ref $node_owner );
         for my $path ( @{$node_owner} ) {
             next if ( not length $path );
+            my $this = $name;
             my @next = split m{/}, $path;
             while ( my $child = shift @next ) {
                 last if ( not exists $ids{$child} );
-                $by_name{$name}->{owner}->{ $ids{$child} } = 1;
-                $name = $child;
+                $by_name{$this}->{owner}->{ $ids{$child} } = 1;
+                $this = $child;
             }
         }
         push @full_table, $full_row;
     }
     for my $full_row (@full_table) {
-        $full_row->{owner} = keys(%{ $full_row->{owner} }) ? [ keys %{ $full_row->{owner} } ] : -1;
+        $full_row->{owner} = [ keys %{ $full_row->{owner} } ];
         my $brief_row = { %{$full_row} };
         delete $brief_row->{name};
         push @brief_table, $brief_row;

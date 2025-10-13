@@ -126,7 +126,7 @@ sub _gather_node_information {
         push @full_table, $full_row;
     }
     for my $full_row (@full_table) {
-        $full_row->{owner} = [ keys %{ $full_row->{owner} } ];
+        $full_row->{owner} = keys(%{ $full_row->{owner} }) ? [ keys %{ $full_row->{owner} } ] : -1;
         my $brief_row = { %{$full_row} };
         delete $brief_row->{name};
         push @brief_table, $brief_row;

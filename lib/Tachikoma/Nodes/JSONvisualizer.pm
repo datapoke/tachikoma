@@ -117,6 +117,7 @@ sub _gather_node_information {
             next if ( not length $path );
             my @next = split m{/}, $path;
             while ( my $child = shift @next ) {
+                last if ( not exists $ids{$child} );
                 $by_name{$name}->{owner}->{ $ids{$child} } = 1;
                 $name = $child;
             }

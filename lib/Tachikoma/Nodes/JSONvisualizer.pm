@@ -77,9 +77,9 @@ sub gather_node_information {
 sub _gather_node_information {
     my $self        = shift;
     my $mode        = shift;
-    my %by_name     = {};
-    my $full_table  = [];
-    my $brief_table = [];
+    my %by_name     = ();
+    my @full_table  = ();
+    my @brief_table = ();
     my $content     = undef;
     my $ignore      = $self->{arguments};
     my %ids         = ();
@@ -88,10 +88,10 @@ sub _gather_node_information {
     for my $name ( sort keys %Tachikoma::Nodes ) {
         my $node = $Tachikoma::Nodes{$name};
         next
-            if ($ignore
-            and length($node->{parent})
+            if ( $ignore
+            and length( $node->{parent} )
             and $node->{parent} =~ m{$ignore} );
-        $ids{$name} = $id++;
+        $ids{$name}     = $id++;
         $by_name{$name} = {
             sink    => -1,
             edge    => -1,
@@ -102,8 +102,8 @@ sub _gather_node_information {
     for my $name ( sort keys %Tachikoma::Nodes ) {
         my $node = $Tachikoma::Nodes{$name};
         next
-            if ($ignore
-            and length($node->{parent})
+            if ( $ignore
+            and length( $node->{parent} )
             and $node->{parent} =~ m{$ignore} );
         my $full_row = $by_name{$name};
         $full_row->{sink} = $ids{ $node->{sink}->{name} }
@@ -111,26 +111,26 @@ sub _gather_node_information {
         $full_row->{edge} = $ids{ $node->{edge}->{name} }
             if ( $node->{edge} );
         my $node_owner = $node->owner;
-        $node_owner    = length($node_owner) ? [ $node_owner ] : []
+        $node_owner = length($node_owner) ? [$node_owner] : []
             if ( not ref $node_owner );
         for my $path ( @{$node_owner} ) {
             next if ( not length $path );
             my @next = split m{/}, $path;
-            while (my $child = shift @next) {
+            while ( my $child = shift @next ) {
                 $by_name{$name}->{owner}->{ $ids{$child} } = 1;
                 $name = $child;
             }
         }
-        push @{$full_table}, $full_row;
+        push @full_table, $full_row;
     }
-    for my $full_row (@{$full_table}) {
+    for my $full_row (@full_table) {
         $full_row->{owner} = [ keys %{ $full_row->{owner} } ];
-        my $brief_row = {%{$full_row}};
+        my $brief_row = { %{$full_row} };
         delete $brief_row->{name};
-        push @{$brief_table}, $brief_row;
+        push @brief_table, $brief_row;
     }
-    my $full_json  = encode_json($full_table);
-    my $brief_json = encode_json($brief_table);
+    my $full_json  = encode_json( \@full_table );
+    my $brief_json = encode_json( \@brief_table );
     $self->full_cache( \$full_json );
     $self->brief_cache( \$brief_json );
     $self->last_update($Tachikoma::Now);

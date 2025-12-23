@@ -9,8 +9,13 @@ use warnings;
 use Tachikoma::Nodes::ConsumerBroker;
 use Tachikoma::Message qw( ID TIMESTAMP );
 use CGI;
+use JSON -support_by_pp;
 
 $| = 1;    # Autoflush
+
+my $json = JSON->new;
+$json->canonical(1);
+$json->allow_blessed(1);
 
 my $home   = ( getpwuid $< )[7];
 my $config = Tachikoma->configuration;
@@ -119,6 +124,11 @@ while (1) {
     # Emit SSE events for each message
     for my $message (@messages) {
         my $payload = $message->payload;
+
+        # JSON encode if payload is a reference
+        if ( ref $payload ) {
+            $payload = $json->utf8->encode($payload);
+        }
 
         # Build current offsets for resumption (comma-separated)
         my @current_offsets = ();

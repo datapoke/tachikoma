@@ -3,7 +3,6 @@ const server_path = "cgi-bin/sse-tail.cgi";
 const _topic = parsed_url.searchParams.get("topic") || topic;
 const _offset = parsed_url.searchParams.get("offset") || offset;
 const _count = parsed_url.searchParams.get("count") || count;
-const _double_encode = parsed_url.searchParams.get("double_encode") || (double_encode ? "1" : "0");
 
 let eventSource = null;
 let output = [];
@@ -29,7 +28,7 @@ function connect() {
         eventSource.close();
     }
 
-    const url = `${server_path}/${_topic}/${_offset}/${_count}/${_double_encode}`;
+    const url = `${server_path}/${_topic}/${_offset}/${_count}`;
     eventSource = new EventSource(url);
 
     updateStatus("connecting...");

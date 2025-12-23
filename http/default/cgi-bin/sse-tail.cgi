@@ -9,7 +9,6 @@ use warnings;
 use Tachikoma::Nodes::ConsumerBroker;
 use Tachikoma::Message qw( ID TIMESTAMP );
 use CGI;
-use JSON -support_by_pp;
 
 $| = 1;    # Autoflush
 
@@ -29,11 +28,10 @@ $broker_ids ||= ['localhost:5501'];
 my $cgi  = CGI->new;
 my $path = $cgi->path_info;
 $path =~ s(^/)();
-my ( $topic, $location, $count, $double_encode ) = split m{/}, $path, 4;
+my ( $topic, $location, $count ) = split m{/}, $path, 3;
 die "no topic\n" if ( not length $topic );
-$location      ||= 'recent';
-$count         ||= 100;
-$double_encode ||= 0;
+$location ||= 'recent';
+$count    ||= 100;
 
 # Check for Last-Event-ID header (sent automatically by EventSource on reconnect)
 # Format: comma-separated offsets per partition, e.g. "123,456,789"
@@ -41,11 +39,6 @@ my $last_event_id = $ENV{HTTP_LAST_EVENT_ID} // q();
 if ( $last_event_id =~ m{^[\d,]+$} ) {
     $location = $last_event_id;
 }
-
-my $json = JSON->new;
-$json->canonical(1);
-$json->allow_blessed(1);
-$json->convert_blessed(0);
 
 # SSE headers
 print "Content-Type: text/event-stream\n";
@@ -126,19 +119,6 @@ while (1) {
     # Emit SSE events for each message
     for my $message (@messages) {
         my $payload = $message->payload;
-        my $data;
-        if ( $double_encode and ref $payload ) {
-            $data = $json->utf8->encode($payload);
-        }
-        elsif ( ref $payload ) {
-            $data = $json->utf8->encode($payload);
-        }
-        else {
-            $data = $payload;
-        }
-        # SSE data lines can't have bare newlines
-        $data =~ s/\r?\n/\ndata: /g;
-        $data =~ s/\ndata: $//;    # Remove trailing if ended with newline
 
         # Build current offsets for resumption (comma-separated)
         my @current_offsets = ();
@@ -148,14 +128,18 @@ while (1) {
         }
         my $event_id = join q(,), @current_offsets;
 
+        # SSE data lines can't have bare newlines
+        $payload =~ s/\r?\n/\ndata: /g;
+        $payload =~ s/\ndata: $//;    # Remove trailing if ended with newline
+
         print "id: $event_id\n";
-        print "data: $data\n\n" or last;
+        print "data: $payload\n\n";
     }
 
     # Heartbeat every 30s to prevent idle timeout
     my $now = time();
     if ( $now - $last_heartbeat >= 30 ) {
-        print ": keepalive\n\n" or last;
+        print ": keepalive\n\n";
         $last_heartbeat = $now;
     }
 

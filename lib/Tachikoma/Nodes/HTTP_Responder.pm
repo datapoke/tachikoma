@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use Tachikoma::Nodes::Timer;
 use Tachikoma::Message qw(
-    TYPE FROM TO PAYLOAD
+    TYPE FROM TO STREAM PAYLOAD
     TM_BYTESTREAM TM_STORABLE TM_EOF
 );
 use File::Temp qw( tempfile );
@@ -167,9 +167,14 @@ sub fill {    ## no critic (ProhibitExcessComplexity)
     delete $requests->{$name};
     delete $payloads->{$name};
     my $request_message = Tachikoma::Message->new;
-    $request_message->[TYPE]    = TM_STORABLE;
-    $request_message->[FROM]    = $message->[FROM];
-    $request_message->[TO]      = $self->{owner};
+    $request_message->[TYPE] = TM_STORABLE;
+    $request_message->[FROM] = $message->[FROM];
+    $request_message->[TO]   = $self->{owner};
+    $request_message->[STREAM] =
+        join q(),
+        $headers->{host}
+        ? join q(), 'http://', $headers->{host}, $request->{uri}
+        : join q(), 'http://default', $request->{uri};
     $request_message->[PAYLOAD] = $request;
     $self->{counter}++;
     return $self->{sink}->fill($request_message);
@@ -214,6 +219,7 @@ sub send404 {
     my $response = Tachikoma::Message->new;
     $response->[TYPE]    = TM_BYTESTREAM;
     $response->[TO]      = $message->[FROM];
+    $response->[STREAM]  = $message->[STREAM];
     $response->[PAYLOAD] = join q(),
         "HTTP/1.1 404 NOT FOUND\n",
         'Date: ', cached_strftime(), "\n",

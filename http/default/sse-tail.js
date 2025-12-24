@@ -38,16 +38,26 @@ function connect() {
         message_count = 0;
     };
 
-    eventSource.onmessage = function(event) {
+    eventSource.addEventListener("text", function(event) {
         message_count++;
-        const data = event.data;
-        output.unshift(data + "\n");
+        output.unshift(event.data + "\n");
         while (output.length > _count) {
             output.pop();
         }
         dirty = 1;
         updateStatus(`connected (${message_count} messages)`);
-    };
+    });
+
+    eventSource.addEventListener("json", function(event) {
+        message_count++;
+        const formatted = event.data.replace(/,/g, ',\n    ');
+        output.unshift(formatted + "\n");
+        while (output.length > _count) {
+            output.pop();
+        }
+        dirty = 1;
+        updateStatus(`connected (${message_count} messages)`);
+    });
 
     eventSource.addEventListener("error", function(event) {
         if (eventSource.readyState === EventSource.CLOSED) {

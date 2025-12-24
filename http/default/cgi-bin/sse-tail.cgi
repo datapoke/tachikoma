@@ -123,11 +123,13 @@ while (1) {
 
     # Emit SSE events for each message
     for my $message (@messages) {
-        my $payload = $message->payload;
+        my $payload    = $message->payload;
+        my $event_type = 'text';
 
         # JSON encode if payload is a reference
         if ( ref $payload ) {
-            $payload = $json->utf8->encode($payload);
+            $payload    = $json->utf8->encode($payload);
+            $event_type = 'json';
         }
 
         # Build current offsets for resumption (comma-separated)
@@ -142,6 +144,7 @@ while (1) {
         $payload =~ s/\r?\n/\ndata: /g;
         $payload =~ s/\ndata: $//;    # Remove trailing if ended with newline
 
+        print "event: $event_type\n";
         print "id: $event_id\n";
         print "data: $payload\n\n";
     }

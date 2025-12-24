@@ -143,9 +143,13 @@ sub handle_response {
         $message->[TO] = $self->{owner};
     }
     $self->{load_balancer}->handle_response($message);
-    $message->[FROM] = $from       if ( $next and $next eq '_parent' );
-    $self->stamp_message($message) if ( not length $next );
-    $self->{sink}->fill($message)  if ( length $message->[TO] );
+    if ( length $next ) {
+        $message->[FROM] = $from if ( $next eq '_parent' );
+    }
+    else {
+        $self->stamp_message( $message, $self->name );
+    }
+    $self->{sink}->fill($message) if ( length $message->[TO] );
     return;
 }
 

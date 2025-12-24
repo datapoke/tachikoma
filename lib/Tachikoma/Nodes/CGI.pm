@@ -206,15 +206,15 @@ FIND_SCRIPT: while ($test_path) {
 
     # actually run the script
     ## no critic (RequireLocalizedPunctuationVars)
-    local $SIG{HUP} = sub { die "SIGHUP\n" };
+    local $SIG{USR2} = sub { die "SIGUSR2\n" };
     my $okay = 1;
     $okay = eval {
         &{ $includes->{$script_path} }();
         return 1;
     } if ( $includes->{$script_path} );
 
-    # handle SIGHUP - client disconnected, clean up and return
-    my $interrupted = ( $@ and $@ eq "SIGHUP\n" );
+    # handle SIGUSR2 - client disconnected, clean up and return
+    my $interrupted = ( $@ and $@ eq "SIGUSR2\n" );
     if ($interrupted) {
         if ($is_post) {
             if ( $request->{tmp} ) {

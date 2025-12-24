@@ -159,7 +159,7 @@ sub handle_error {
     my ($name) = split m{/}, $to, 2;
     my $job    = length $name ? $self->{job_controller}->{jobs}->{$name} : undef;
     if ( $job and $job->{pid} ne q(-) ) {
-        kill 'HUP', $job->{pid};
+        kill 'USR2', $job->{pid};
     }
     return;
 }

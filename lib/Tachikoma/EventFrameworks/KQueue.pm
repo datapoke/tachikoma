@@ -105,6 +105,7 @@ sub drain {
     $KQUEUE->EV_SET( SIGTERM, EVFILT_SIGNAL, EV_ADD );
     $KQUEUE->EV_SET( SIGHUP,  EVFILT_SIGNAL, EV_ADD );
     $KQUEUE->EV_SET( SIGUSR1, EVFILT_SIGNAL, EV_ADD );
+    $KQUEUE->EV_SET( SIGUSR2, EVFILT_SIGNAL, EV_ADD );
 
     while ( $router->{is_active} ) {
         my @events = $KQUEUE->kevent( keys %TIMERS ? 0 : 60000 );

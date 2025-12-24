@@ -205,11 +205,31 @@ FIND_SCRIPT: while ($test_path) {
     }
 
     # actually run the script
+    ## no critic (RequireLocalizedPunctuationVars)
+    local $SIG{HUP} = sub { die "SIGHUP\n" };
     my $okay = 1;
     $okay = eval {
         &{ $includes->{$script_path} }();
         return 1;
     } if ( $includes->{$script_path} );
+
+    # handle SIGHUP - client disconnected, clean up and return
+    my $interrupted = ( $@ and $@ eq "SIGHUP\n" );
+    if ($interrupted) {
+        if ($is_post) {
+            if ( $request->{tmp} ) {
+                my $tmp_path = join q(/), $self->{tmp_path}, 'post';
+                my $tmp      = ( $request->{tmp} =~ m{^($tmp_path/\w+$)} )[0];
+                unlink $tmp or die "ERROR: couldn't unlink $tmp: $!";
+                close STDIN or die "ERROR: couldn't close $tmp: $!";
+            }
+            else {
+                untie *STDIN;
+            }
+        }
+        untie *STDOUT;
+        return;
+    }
 
     # see how it went
     my $dirty = undef;

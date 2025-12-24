@@ -104,13 +104,16 @@ sub fill {
     elsif ($job) {
         $self->handle_response( $message, $next, $from );
     }
+    elsif ( $message->[TYPE] & TM_ERROR ) {
+        $self->handle_error($message);
+    }
     elsif ( $message->[TYPE] & TM_EOF ) {
         $self->handle_EOF( $message, $job, $next );
     }
     elsif ( $message->[TYPE] & TM_COMMAND ) {
         $self->{interpreter}->fill($message);
     }
-    elsif ( $message->[TYPE] != TM_ERROR ) {
+    else {
         $self->{counter}++;
         $self->{load_balancer}->fill($message);
     }
@@ -140,8 +143,20 @@ sub handle_response {
         $message->[TO] = $self->{owner};
     }
     $self->{load_balancer}->handle_response($message);
-    $message->[FROM] = $from      if ( $next and $next eq '_parent' );
-    $self->{sink}->fill($message) if ( length $message->[TO] );
+    $message->[FROM] = $from       if ( $next and $next eq '_parent' );
+    $self->stamp_message($message) if ( not length $next );
+    $self->{sink}->fill($message)  if ( length $message->[TO] );
+    return;
+}
+
+sub handle_error {
+    my ( $self, $message ) = @_;
+    my $to   = $message->[TO] // q();
+    my ($name) = split m{/}, $to, 2;
+    my $job    = length $name ? $self->{job_controller}->{jobs}->{$name} : undef;
+    if ( $job and $job->{pid} ne q(-) ) {
+        kill 'HUP', $job->{pid};
+    }
     return;
 }
 

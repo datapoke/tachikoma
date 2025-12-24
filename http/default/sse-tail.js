@@ -50,7 +50,10 @@ function connect() {
 
     eventSource.addEventListener("json", function(event) {
         message_count++;
-        const formatted = event.data.replace(/,/g, ',\n    ');
+        const formatted = event.data
+            .replace(/,"/g, ',\n    "')
+            .replace(/\{"/g, '{\n    "')
+            .replace(/"\}/g, '"\n}');
         output.unshift(formatted + "\n");
         while (output.length > _count) {
             output.pop();

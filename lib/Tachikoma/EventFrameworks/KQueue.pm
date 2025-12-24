@@ -8,7 +8,7 @@ package Tachikoma::EventFrameworks::KQueue;
 use strict;
 use warnings;
 use IO::KQueue;
-use POSIX qw( :sys_wait_h SIGCHLD SIGHUP SIGUSR1 SIGINT SIGTERM );
+use POSIX qw( :sys_wait_h SIGCHLD SIGHUP SIGUSR1 SIGUSR2 SIGINT SIGTERM );
 use Time::HiRes;
 
 use version; our $VERSION = qv('v2.0.227');
@@ -153,7 +153,7 @@ sub handle_signal {
         Tachikoma->stderr('got SIGUSR1 - reloading config');
         Tachikoma->reload_config;
     }
-    else {
+    elsif ( $id != SIGUSR2 ) {
         Tachikoma->stderr('received signal');
         Tachikoma->shutdown_all_nodes;
     }

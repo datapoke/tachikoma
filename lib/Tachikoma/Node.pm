@@ -295,26 +295,26 @@ sub _notify_registered {
 
 sub stamp_message {
     my ( $self, $message, $name ) = @_;
-	my $from = $message->[FROM];
-	if ( length $name ) {
-		if ( length $from ) {
-			$from = join q(/), $name, $from;
-			if ( length($from) > MAX_FROM_SIZE ) {
-				$self->stderr( 'ERROR: path exceeded '
-						. MAX_FROM_SIZE
-						. " bytes, dropping message from: $from" );
-				return;
-			}
-			$message->[FROM] = $from;
-		}
-		else {
-			$message->[FROM] = $name;
-		}
-	}
-	else {
-		$self->print_less_often("ERROR: could not stamp_message() from ${from}");
-	}
-    return;
+    my $from = $message->[FROM];
+    if ( length $name ) {
+        if ( length $from ) {
+            $from = join q(/), $name, $from;
+            if ( length($from) > MAX_FROM_SIZE ) {
+                $self->stderr( 'ERROR: path exceeded '
+                        . MAX_FROM_SIZE
+                        . " bytes, dropping message from: $from" );
+                return;
+            }
+            $message->[FROM] = $from;
+        }
+        else {
+            $message->[FROM] = $name;
+        }
+    }
+    else {
+        $self->print_less_often("ERROR: could not stamp_message() from ${from}");
+    }
+    return 1;
 }
 
 sub drop_message {

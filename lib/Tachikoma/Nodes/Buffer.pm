@@ -148,7 +148,6 @@ sub handle_response {
         my $entry = $msg_unanswered->{$message_id};
         $type = $entry->[1];
     }
-    $payload = 'cancel' if ( $payload eq 'answer' and $type & TM_ERROR );
     if ( $payload eq 'cancel' ) {
         my $tiedhash    = $self->{tiedhash}    // $self->tiedhash;
         my $buffer_size = $self->{buffer_size} // $self->get_buffer_size;

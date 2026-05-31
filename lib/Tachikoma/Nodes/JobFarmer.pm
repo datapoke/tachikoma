@@ -155,9 +155,9 @@ sub handle_response {
 
 sub handle_error {
     my ( $self, $message ) = @_;
-    my $to   = $message->[TO] // q();
+    my $to     = $message->[TO] // q();
     my ($name) = split m{/}, $to, 2;
-    my $job    = length $name ? $self->{job_controller}->{jobs}->{$name} : undef;
+    my $job = length $name ? $self->{job_controller}->{jobs}->{$name} : undef;
     if ( $job and $job->{pid} ne q(-) ) {
         kill 'USR2', $job->{pid};
     }

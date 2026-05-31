@@ -52,11 +52,8 @@ sub fire_cb {
 
 sub fire {
     my $self = shift;
-    if ($self->{sink}
-        and ( $self->{owner}
-            or ref( $self->{sink} ) ne
-            'Tachikoma::Nodes::CommandInterpreter' )
-        )
+    if ( $self->{owner}
+        or ref( $self->{sink} ) ne 'Tachikoma::Nodes::CommandInterpreter' )
     {
         my $message = Tachikoma::Message->new;
         $message->[TYPE]    = TM_BYTESTREAM;

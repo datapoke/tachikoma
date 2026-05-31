@@ -52,9 +52,9 @@ sub fire_cb {
 
 sub fire {
     my $self = shift;
-    if ($self->{owner}
-        or ( $self->{sink}
-            and ref( $self->{sink} ) ne
+    if ($self->{sink}
+        and ( $self->{owner}
+            or ref( $self->{sink} ) ne
             'Tachikoma::Nodes::CommandInterpreter' )
         )
     {

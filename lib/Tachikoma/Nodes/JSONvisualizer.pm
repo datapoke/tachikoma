@@ -114,6 +114,7 @@ sub _gather_node_information {
         my $node_owner = $node->owner;
         $node_owner = length($node_owner) ? [$node_owner] : []
             if ( not ref $node_owner );
+
         for my $path ( @{$node_owner} ) {
             next if ( not length $path );
             my $this = $name;

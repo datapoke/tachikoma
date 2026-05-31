@@ -312,7 +312,8 @@ sub stamp_message {
         }
     }
     else {
-        $self->print_less_often("ERROR: could not stamp_message() from ${from}");
+        $self->print_less_often(
+            "ERROR: could not stamp_message() from ${from}");
     }
     return 1;
 }

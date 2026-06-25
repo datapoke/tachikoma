@@ -18,7 +18,7 @@ while ( $buf_size <= 1048576 ) {
     print "\nsize: $size\n";
     check_pack( $message, $size );
     check_unpack( $packed, $size );
-    $buf_size *= 2;
+    $buf_size *= 4;
 }
 
 sub check_pack {
